@@ -58,6 +58,7 @@ export class StripeBillingManager implements BillingManager {
 
 export type BillingPluginOptions = {
     billing: BillingManager;
+    stripeSigningSecret: string;
 } & FastifyPluginOptions;
 
 const billingPlugin: FastifyPluginAsyncTypebox<BillingPluginOptions> = async (
@@ -65,6 +66,78 @@ const billingPlugin: FastifyPluginAsyncTypebox<BillingPluginOptions> = async (
     options
 ) => {
     server.decorate<BillingManager>("billing", options.billing);
+
+    server.post(
+        "/stripe/webhook",
+        {
+            config: {
+                rawBody: true,
+            },
+        },
+        async (request, reply) => {
+            const { prisma, stripe } = request.server;
+            let event: Stripe.Event;
+            try {
+                event = stripe.webhooks.constructEvent(
+                    request.rawBody!,
+                    request.headers["stripe-signature"]!,
+                    options.stripeSigningSecret
+                );
+            } catch (e) {
+                return reply
+                    .status(400)
+                    .send("Webhook signature verification failed");
+            }
+            const data = event.data;
+
+            switch (event.type) {
+                case "customer.subscription.updated":
+                    const subscription = event.data
+                        .object as Stripe.Subscription;
+
+                    // XXX: code below is not nice
+                    // XXX: transfer code to BillingManager class
+                    let account: Account | undefined = undefined;
+                    const user = await prisma.user.findUnique({
+                        where: {
+                            billingCustomerId: subscription.customer as string,
+                        },
+                        include: { account: true },
+                    });
+                    if (user) {
+                        account = user.account;
+                    } else {
+                        const organization =
+                            await prisma.organization.findUnique({
+                                where: {
+                                    billingCustomerId:
+                                        subscription.customer as string,
+                                },
+                                include: { account: true },
+                            });
+                        if (organization) {
+                            account = organization.account;
+                        }
+                    }
+
+                    if (!account) {
+                        // return coult not find account
+                        return reply.code(400).send();
+                    }
+
+                    prisma.account.update({
+                        where: { id: account.id },
+                        data: { billingSubscriptionId: subscription.id },
+                    });
+
+                    // XXX: save itemId for usage reporting?
+                    const itemId = subscription.items.data[0].id;
+                    break;
+            }
+            if (event.type === "") {
+            }
+        }
+    );
 };
 
 export default fp(billingPlugin);

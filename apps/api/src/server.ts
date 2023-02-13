@@ -3,6 +3,7 @@ import jwt from "fastify-auth0-verify";
 import stripe from "fastify-stripe";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import rawBody from "fastify-raw-body";
 import {
     TypeBoxTypeProvider,
     TypeBoxValidatorCompiler,
@@ -42,7 +43,7 @@ export interface ServerOptions {
     logger: boolean;
 }
 
-const buildServer = (options: ServerOptions): FastifyTypebox => {
+const buildServer = async (options: ServerOptions): Promise<FastifyTypebox> => {
     const server: FastifyTypebox = Fastify({
         logger: options.logger,
         ajv: {
@@ -73,28 +74,32 @@ const buildServer = (options: ServerOptions): FastifyTypebox => {
         });
 
     // setup JWT validator using Auth0
-    server.register(jwt, {
+    await server.register(jwt, {
         domain: issuer,
         audience: ["https://api.sunodo.io", `${issuer}userinfo`],
     });
 
+    // install this plugin so we can access the rawBody property of the request, so we can use in stripe webhook
+    await server.register(rawBody, { global: false });
+
     // stripe plugin
-    server.register(stripe, {
+    await server.register(stripe, {
         apiKey: stripeApiKey,
         apiVersion: "2022-11-15",
         typescript: true,
     });
 
     // billing manager plugin
-    server.register(billingPlugin, {
+    await server.register(billingPlugin, {
         billing: options.billing,
+        stripeSigningSecret: process.env.STRIPE_SECRET_KEY!,
     });
 
     // register schemas
     // server.addSchema(createSchema);
 
     // swagger
-    server.register(swagger, {
+    await server.register(swagger, {
         openapi: {
             info: {
                 title: "Sunodo API",
@@ -111,7 +116,7 @@ const buildServer = (options: ServerOptions): FastifyTypebox => {
             },
         },
     });
-    server.register(swaggerUi, {
+    await server.register(swaggerUi, {
         routePrefix: "/docs",
         uiConfig: {
             deepLinking: false,
@@ -123,12 +128,12 @@ const buildServer = (options: ServerOptions): FastifyTypebox => {
     });
 
     // register application routes
-    server.register(appsRoutes, { prefix: "apps" });
-    server.register(authRoutes, { prefix: "auth" });
-    server.register(chainsRoutes, { prefix: "chains" });
-    server.register(orgsRoutes, { prefix: "orgs" });
-    server.register(regionsRoutes, { prefix: "regions" });
-    server.register(runtimesRoutes, { prefix: "runtimes" });
+    await server.register(appsRoutes, { prefix: "apps" });
+    await server.register(authRoutes, { prefix: "auth" });
+    await server.register(chainsRoutes, { prefix: "chains" });
+    await server.register(orgsRoutes, { prefix: "orgs" });
+    await server.register(regionsRoutes, { prefix: "regions" });
+    await server.register(runtimesRoutes, { prefix: "runtimes" });
 
     return server;
 };

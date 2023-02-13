@@ -25,7 +25,7 @@ const buildServerHook = async (ctx: Suite | File) => {
     const billing = new TestStripeBillingManager(stripe);
 
     // build the server
-    const server = buildServer({
+    const server = await buildServer({
         prisma,
         billing,
         logger: false,

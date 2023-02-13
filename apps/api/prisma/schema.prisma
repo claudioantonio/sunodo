@@ -7,6 +7,10 @@ generator erd {
   provider = "prisma-erd-generator"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -86,7 +90,7 @@ model Account {
   plan                  Plan          @relation(fields: [planId], references: [id])
   planId                String
   applications          Application[]
-  billingSubscriptionId String?
+  billingSubscriptionId String?       @unique
   user                  User?
   organization          Organization?
 }
