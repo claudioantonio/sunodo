@@ -3,7 +3,7 @@ import { createSigner } from "fast-jwt";
 import { readFileSync } from "fs";
 const libtrust = require("libtrust");
 import { RouteHandlerMethodTypebox } from "../../types";
-import { TokenSchema } from "./registry.schemas";
+import { EventNotificationSchema, TokenSchema } from "./registry.schemas";
 
 // parse 'scope' according to docker spec at
 // https://docs.docker.com/registry/spec/auth/scope/#resource-scope-grammar
@@ -71,4 +71,15 @@ export const tokenHandler: RouteHandlerMethodTypebox<
 
     const token = signer({ sub: request.user.sub, access });
     return reply.code(200).send({ token, expires_in: expiration });
+};
+
+export const eventsHandler: RouteHandlerMethodTypebox<
+    typeof EventNotificationSchema
+> = async (request, reply) => {
+    request.body.events.forEach((e) => {
+        console.log(
+            `${e.action} on ${e.target.repository}:${e.target.tag ?? "latest"}`
+        );
+    });
+    return reply.code(204).send();
 };

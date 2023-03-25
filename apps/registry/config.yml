@@ -13,3 +13,12 @@ auth:
         service: registry.sunodo.io
         issuer: api.sunodo.io
         rootcertbundle: /keys/registry.crt
+notifications:
+    endpoints:
+        - name: api
+          url: http://host.docker.internal:3001/registry/events
+          headers:
+              Authorization: [Bearer <your token, if needed>]
+          timeout: 500ms
+          threshold: 5
+          backoff: 1s
