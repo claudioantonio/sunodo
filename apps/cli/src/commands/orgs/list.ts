@@ -1,6 +1,7 @@
-import { SunodoCommand } from "../../sunodoCommand.js";
-import { listOrganizations } from "../../services/sunodo.js";
 import { ux } from "@oclif/core";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
+import { SunodoCommand } from "../../sunodoCommand.js";
+import { paths } from "../../services/sunodo.js";
 
 export default class ListOrganization extends SunodoCommand {
     static description = "List organizations";
@@ -11,12 +12,17 @@ export default class ListOrganization extends SunodoCommand {
 
     public async run(): Promise<void> {
         const { flags } = await this.parse(ListOrganization);
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const listOrganizations = fetcher.path("/orgs/").method("get").create();
 
-        const { data, status } = await listOrganizations(this.fetchConfig);
-        if (status === 200) {
+        try {
+            const { data } = await listOrganizations({});
             ux.table(data, { name: {}, slug: {} }, { ...flags });
-        } else {
-            this.error(data.message);
+        } catch (e) {
+            if (e instanceof listOrganizations.Error) {
+                this.error(e.getActualType().data.message);
+            }
         }
     }
 }

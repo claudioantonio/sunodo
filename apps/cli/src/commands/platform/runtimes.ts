@@ -1,5 +1,7 @@
 import { Flags, ux } from "@oclif/core";
-import { getRuntimes } from "../../services/sunodo.js";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
+
+import { paths } from "../../services/sunodo.js";
 import { SunodoCommand } from "../../sunodoCommand.js";
 
 export default class PlatformRuntimes extends SunodoCommand {
@@ -15,14 +17,12 @@ export default class PlatformRuntimes extends SunodoCommand {
     };
 
     public async run(): Promise<void> {
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const getRuntimes = fetcher.path("/runtimes/").method("get").create();
+
         const { flags } = await this.parse(PlatformRuntimes);
-        const { data } = await getRuntimes(this.fetchConfig);
-        ux.table(
-            data,
-            {
-                name: {},
-            },
-            { ...flags }
-        );
+        const { data } = await getRuntimes({});
+        ux.table(data, { name: {} }, { ...flags });
     }
 }

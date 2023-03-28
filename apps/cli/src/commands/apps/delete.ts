@@ -1,9 +1,10 @@
 import ora from "ora";
 import c from "ansi-colors";
+import { Args } from "@oclif/core";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
 
 import { SunodoCommand } from "../../sunodoCommand.js";
-import { deleteApplication } from "../../services/sunodo.js";
-import { Args } from "@oclif/core";
+import { paths } from "../../services/sunodo.js";
 
 export default class DeleteApplication extends SunodoCommand {
     static description = "Delete application";
@@ -15,15 +16,25 @@ export default class DeleteApplication extends SunodoCommand {
     public async run(): Promise<void> {
         const { args } = await this.parse(DeleteApplication);
 
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const deleteApplication = fetcher
+            .path("/apps/{name}")
+            .method("delete")
+            .create();
+
         const spinner = ora("Deleting application...").start();
-        const { data, status } = await deleteApplication(
-            args.name,
-            this.fetchConfig
-        );
-        if (status === 204) {
+        try {
+            await deleteApplication(args);
             spinner.succeed(`Application deleted: ${c.red(args.name)}`);
-        } else {
-            spinner.fail(`Error deleting application: ${c.red(data.message)}`);
+        } catch (e) {
+            if (e instanceof deleteApplication.Error) {
+                spinner.fail(
+                    `Error deleting application: ${c.red(
+                        e.getActualType().data.message
+                    )}`
+                );
+            }
         }
     }
 }

@@ -3,10 +3,11 @@ import { errors, TokenSet } from "openid-client";
 import enquirer from "enquirer";
 import ora from "ora";
 import c from "ansi-colors";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
 
 import { authClient } from "../../services/auth.js";
 import { SunodoCommand } from "../../sunodoCommand.js";
-import { login } from "../../services/sunodo.js";
+import { paths } from "../../services/sunodo.js";
 
 export default class AuthLogin extends SunodoCommand {
     static aliases = ["login"];
@@ -67,29 +68,44 @@ export default class AuthLogin extends SunodoCommand {
 
         if (tokens && tokens.access_token) {
             // call API /auth/login
-            const response = await login({
-                ...this.fetchConfig,
-                headers: { Authorization: `Bearer ${tokens.access_token}` },
-            });
+            const fetcher = Fetcher.for<paths>();
+            fetcher.configure(this.fetchConfig);
+            const login = fetcher.path("/auth/login").method("post").create();
 
-            if (response.status != 200) {
-                spinner.fail(`Authentication failed: ${response.data.message}`);
-            } else {
-                const email = response.data.email;
+            try {
+                const { data } = await login(
+                    {},
+                    {
+                        ...this.fetchConfig,
+                        headers: {
+                            Authorization: `Bearer ${tokens.access_token}`,
+                        },
+                    }
+                );
+
+                const email = data.email;
                 spinner.succeed(`Logged in as ${c.cyan(email)}`);
 
                 // save tokens locally
                 this.saveToken(tokens);
 
                 // open subscription page if needs to subscribe
-                if (response.data.subscription?.url) {
+                if (data.subscription?.url) {
                     await enquirer.prompt({
                         name: "subscribe",
                         message: `<press enter> to subscribe`,
                         type: "input",
-                        initial: response.data.subscription.url,
+                        initial: data.subscription.url,
                     });
-                    open(response.data.subscription.url);
+                    open(data.subscription.url);
+                }
+            } catch (e) {
+                if (e instanceof login.Error) {
+                    spinner.fail(
+                        `Authentication failed: ${
+                            e.getActualType().data.message
+                        }`
+                    );
                 }
             }
         }

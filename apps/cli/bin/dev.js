@@ -23,6 +23,6 @@ oclif.settings.debug = true;
 
 // Start the CLI
 oclif
-    .run(process.argv.slice(2), import.meta.url)
+    .execute({ type: "esm", development: true, dir: import.meta.url })
     .then(oclif.flush)
     .catch(oclif.Errors.handle);

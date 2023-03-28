@@ -1,5 +1,7 @@
 import { Flags, ux } from "@oclif/core";
-import { getChains } from "../../services/sunodo.js";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
+
+import { paths } from "../../services/sunodo.js";
 import { SunodoCommand } from "../../sunodoCommand.js";
 
 export default class PlatformChains extends SunodoCommand {
@@ -15,8 +17,12 @@ export default class PlatformChains extends SunodoCommand {
     };
 
     public async run(): Promise<void> {
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const getChains = fetcher.path("/chains/").method("get").create();
+
         const { flags } = await this.parse(PlatformChains);
-        const { data } = await getChains(this.fetchConfig);
+        const { data } = await getChains({});
         ux.table(
             data,
             {

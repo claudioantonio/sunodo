@@ -1,6 +1,7 @@
-import { SunodoCommand } from "../../sunodoCommand.js";
-import { listApplications } from "../../services/sunodo.js";
 import { Flags, ux } from "@oclif/core";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
+import { SunodoCommand } from "../../sunodoCommand.js";
+import { paths } from "../../services/sunodo.js";
 
 export default class ListApplication extends SunodoCommand {
     static description = "List applications";
@@ -16,15 +17,17 @@ export default class ListApplication extends SunodoCommand {
 
     public async run(): Promise<void> {
         const { flags } = await this.parse(ListApplication);
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const listApplications = fetcher.path("/apps/").method("get").create();
 
-        const { data, status } = await listApplications(
-            { org: flags.org },
-            this.fetchConfig
-        );
-        if (status === 200) {
+        try {
+            const { data, status } = await listApplications(flags);
             ux.table(data, { name: {} }, { ...flags });
-        } else {
-            this.error(data.message);
+        } catch (e) {
+            if (e instanceof listApplications.Error) {
+                this.error(e.getActualType().data.message);
+            }
         }
     }
 }

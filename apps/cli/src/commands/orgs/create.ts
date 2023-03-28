@@ -1,9 +1,10 @@
 import ora from "ora";
 import c from "ansi-colors";
+import { Args, Flags } from "@oclif/core";
+import { Fetcher } from "@cuppachino/openapi-fetch/dist/esm";
 
 import { SunodoCommand } from "../../sunodoCommand.js";
-import { createOrganization } from "../../services/sunodo.js";
-import { Args, Flags } from "@oclif/core";
+import { paths } from "../../services/sunodo.js";
 
 export default class CreateOrganization extends SunodoCommand {
     static description = "Create organization";
@@ -23,15 +24,28 @@ export default class CreateOrganization extends SunodoCommand {
         const { args } = await this.parse(CreateOrganization);
         const { flags } = await this.parse(CreateOrganization);
 
+        const fetcher = Fetcher.for<paths>();
+        fetcher.configure(this.fetchConfig);
+        const createOrganization = fetcher
+            .path("/orgs/")
+            .method("post")
+            .create();
+
         const spinner = ora("Creating application...").start();
-        const { data, status } = await createOrganization(
-            { name: args.name, slug: flags.slug },
-            this.fetchConfig
-        );
-        if (status === 201) {
+        try {
+            const { data } = await createOrganization({
+                name: args.name,
+                slug: flags.slug,
+            });
             spinner.succeed(`Application created: ${c.cyan(data.name)}`);
-        } else {
-            spinner.fail(`Error creating application: ${c.red(data.message)}`);
+        } catch (e) {
+            if (e instanceof createOrganization.Error) {
+                spinner.fail(
+                    `Error creating application: ${c.red(
+                        e.getActualType().data.message
+                    )}`
+                );
+            }
         }
     }
 }
