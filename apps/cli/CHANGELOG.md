@@ -22,7 +22,7 @@
 
 ### Minor Changes
 
--   Fix https://github.com/sunodo/sunodo/issues/34
+-   Fix [#34](https://github.com/sunodo/sunodo/issues/34)
 
 ## 0.3.0
 
