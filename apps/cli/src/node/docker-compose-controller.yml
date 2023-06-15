@@ -1,0 +1,53 @@
+version: "3.9"
+
+x-database-config: &database-config
+    POSTGRES_HOSTNAME: database
+    POSTGRES_PORT: "5432"
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: password
+    POSTGRES_DB: postgres
+
+services:
+    anvil:
+        image: sunodo/anvil:2.0.0
+        profiles: ["dev"]
+        command:
+            [
+                "anvil",
+                "--block-time",
+                "${BLOCK_TIME:-5}",
+                "--load-state",
+                "/anvil/anvil_state.json",
+                "${ANVIL_VERBOSITY:---silent}",
+            ]
+        healthcheck:
+            test: ["CMD", "eth_isready"]
+            interval: 10s
+            timeout: 1s
+            retries: 5
+        volumes:
+            - ./:/anvil/
+        environment:
+            ANVIL_IP_ADDR: 0.0.0.0
+        ports:
+            - 8545:8545
+
+    database:
+        image: postgres:13-alpine
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        environment:
+            - POSTGRES_PASSWORD=password
+
+    redis:
+        image: redis:6-alpine
+        restart: always
+        command: ["--loglevel", "${REDIS_LOG_LEVEL:-warning}"]
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5

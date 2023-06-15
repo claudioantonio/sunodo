@@ -77,7 +77,7 @@
         "npm-run-all": "^4",
         "oclif": "^3.9",
         "rimraf": "^5",
-        "ts-node": "^10.9",
+        "ts-node": "^10",
         "tsconfig": "*",
         "tslib": "^2",
         "typescript": "^5",
@@ -99,7 +99,8 @@
     "scripts": {
         "build": "run-s clean codegen compile copy-files",
         "clean": "rimraf dist",
-        "codegen": "wagmi generate",
+        "codegen": "run-p codegen:wagmi",
+        "codegen:wagmi": "wagmi generate",
         "compile": "tsc -b",
         "copy-files": "copyfiles -u 1 src/**/*.yml dist",
         "lint": "eslint . --ext .ts --config .eslintrc",
