@@ -1,7 +1,9 @@
-import { Command, Flags, loadHelpClass } from "@oclif/core";
+import { Command, Flags } from "@oclif/core";
 import path from "path";
 import fs from "fs-extra";
 import Handlebars from "handlebars";
+import slugify from "slugify";
+import DocsHelp from "../docs.js";
 
 export default class Docs extends Command {
     static summary = "Generate documentation for the CLI.";
@@ -26,10 +28,7 @@ export default class Docs extends Command {
 
     public async run(): Promise<void> {
         const { flags } = await this.parse(Docs);
-
-        const config = this.config;
-        const HelpClass = await loadHelpClass(config);
-        const help = new HelpClass(config, {
+        const help = new DocsHelp(this.config, {
             stripAnsi: true,
             maxWidth: 120,
         });
@@ -38,20 +37,11 @@ export default class Docs extends Command {
         const outputDir = flags["output-dir"];
         fs.ensureDirSync(outputDir);
 
+        const slugifyCommand = (id: string) => slugify(id.replace(":", "-"));
+        Handlebars.registerHelper("slugify", slugifyCommand);
+
         const templateFiles = await fs.readdir(templateDir);
-        const templateData = {
-            commands: this.config.commands.map((command) => {
-                return {
-                    id: command.id,
-                    description: command.description,
-                    examples: command.examples,
-                    aliases: command.aliases,
-                    hidden: command.hidden,
-                    type: command.type,
-                    flags: command.flags,
-                };
-            }),
-        };
+        const templateData = help.completeData();
 
         this.log(`processing templates from ${templateDir} to ${outputDir}`);
         await Promise.all(
@@ -60,12 +50,31 @@ export default class Docs extends Command {
                     path.join(templateDir, templateFile),
                     "utf-8"
                 );
-                const outputFile = templateFile.replace(/\.hbs$/, "");
-                this.log(`processing ${templateFile} -> ${outputFile}`);
                 const compiledTemplate = Handlebars.compile(template);
-                const output = compiledTemplate(templateData);
 
-                await fs.writeFile(path.join(outputDir, outputFile), output);
+                if (templateFile.indexOf("{{command}}") >= 0) {
+                    this.config.commandIDs.forEach((id) => {
+                        const outputFile = templateFile
+                            .replace("{{command}}", slugifyCommand(id))
+                            .replace(/\.hbs$/, "");
+                        this.log(`processing ${templateFile} -> ${outputFile}`);
+
+                        const commandData = help.commandData(id);
+                        const output = compiledTemplate(commandData);
+                        fs.writeFileSync(
+                            path.join(outputDir, outputFile),
+                            output
+                        );
+                    });
+                } else {
+                    const outputFile = templateFile.replace(/\.hbs$/, "");
+                    this.log(`processing ${templateFile} -> ${outputFile}`);
+                    const output = compiledTemplate(templateData);
+                    await fs.writeFile(
+                        path.join(outputDir, outputFile),
+                        output
+                    );
+                }
             })
         );
     }
