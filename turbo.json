@@ -1,11 +1,12 @@
 {
     "$schema": "https://turbo.build/schema.json",
     "globalEnv": [
+        "ALCHEMY_ID",
+        "INFURA_ID",
         "MNEMONIC",
+        "NETWORK",
         "NODE_ENV",
         "PORT",
-        "INFURA_ID",
-        "ALCHEMY_ID",
         "RPC_URL",
         "TS_NODE_PROJECT"
     ],
