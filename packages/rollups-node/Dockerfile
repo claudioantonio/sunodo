@@ -2,14 +2,12 @@
 ARG REGISTRY=docker.io
 ARG ORG=cartesi
 ARG ROLLUPS_VERSION
-ARG SUNODO_DEPLOYMENTS_VERSION=0.1.0
 FROM ${REGISTRY}/${ORG}/rollups-indexer:${ROLLUPS_VERSION}         AS indexer
 FROM ${REGISTRY}/${ORG}/rollups-state-server:${ROLLUPS_VERSION}    AS state_server
 FROM ${REGISTRY}/${ORG}/rollups-dispatcher:${ROLLUPS_VERSION}      AS dispatcher
 FROM ${REGISTRY}/${ORG}/rollups-advance-runner:${ROLLUPS_VERSION}  AS advance_runner
 FROM ${REGISTRY}/${ORG}/rollups-inspect-server:${ROLLUPS_VERSION}  AS inspect_server
 FROM ${REGISTRY}/${ORG}/rollups-graphql-server:${ROLLUPS_VERSION}  AS graphql_server
-FROM sunodo/deployments:${SUNODO_DEPLOYMENTS_VERSION}              AS deployments
 
 FROM ghcr.io/cartesi/server-manager:feature-upgrade-base-image
 USER root
