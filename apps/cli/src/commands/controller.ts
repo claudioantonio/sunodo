@@ -70,6 +70,11 @@ export default class Controller extends Command {
             default: false,
             char: "v",
         }),
+        db: Flags.file({
+            summary: "Path of applications database",
+            description:
+                "Path of the JSON file used to store information about the applications processed from the blockchain",
+        }),
         "k8s-namespace": Flags.string({
             summary: "Kubernetes namespace to deploy applications to",
             description:
@@ -156,9 +161,10 @@ export default class Controller extends Command {
             new CommandLogger(this, flags.verbose),
         );
 
-        // connect to local database, lives inside dataDir
-        // ~/.local/share/sunodo/31337/data.json
-        const dbPath = path.resolve(path.join(dataDir, "data.json"));
+        // connect to local database
+        // default is inside dataDir: ~/.local/share/sunodo/31337/data.json
+        const dbPath =
+            flags.db ?? path.resolve(path.join(dataDir, "data.json"));
 
         this.log(`loading applications database from ${dbPath}`);
         const db = fs.existsSync(dbPath)
