@@ -1,39 +1,51 @@
 import k8s from "@kubernetes/client-node";
 
+import { Application, Logger, NullLogger } from "../index.js";
 import { K8sDriverConfig, NodeDriver } from "./index.js";
-import { Application } from "../index.js";
+
+// definition of custom resource to use
+const crd = {
+    group: "rollups.cartesi.io",
+    kind: "Application",
+    version: "v1alpha1",
+    plural: "applications",
+};
 
 export class K8sDriver implements NodeDriver {
     private config: K8sDriverConfig;
     private api: k8s.CustomObjectsApi;
+    private logger: Logger;
 
-    constructor(config: K8sDriverConfig) {
+    constructor(config: K8sDriverConfig, logger?: Logger) {
         this.config = config;
+        this.logger = logger || new NullLogger();
 
         const kc = new k8s.KubeConfig();
         kc.loadFromDefault();
         this.api = kc.makeApiClient(k8s.CustomObjectsApi);
     }
 
-    private getDAppResourceName(dapp: Application): string {
-        return `dapp-${dapp.address.substring(2, 10).toLocaleLowerCase()}`;
+    private getResourceName(application: Application): string {
+        return `app-${application.address
+            .substring(2, 10)
+            .toLocaleLowerCase()}`;
     }
 
     async start(application: Application, location: string): Promise<void> {
         const { address, blockHash, blockNumber, transactionHash } =
             application;
         const namespace = this.config.namespace;
-        const name = this.getDAppResourceName(application);
+        const name = this.getResourceName(application);
 
         try {
             await this.api.createNamespacedCustomObject(
-                "rollups.cartesi.io",
-                "v1alpha1",
+                crd.group,
+                crd.version,
                 namespace,
-                "applications",
+                crd.plural,
                 {
-                    apiVersion: "rollups.cartesi.io/v1",
-                    kind: "Application",
+                    apiVersion: `${crd.group}/${crd.version}`,
+                    kind: crd.kind,
                     metadata: { name },
                     spec: {
                         address,
@@ -44,22 +56,29 @@ export class K8sDriver implements NodeDriver {
                     },
                 },
             );
+            this.logger.info(`created resource ${name}`);
         } catch (err) {
             // API returns a 409 Conflict if CR already exists.
             if ((err as any).response?.statusCode !== 409) {
+                if ((err as any).response?.statusCode === 404) {
+                    throw new Error(
+                        `${crd.group}/${crd.version} CRD not installed`,
+                    );
+                }
                 throw err;
             }
+            this.logger.info(`skipping existing resource ${name}`);
         }
     }
 
     async stop(application: Application): Promise<void> {
         const namespace = this.config.namespace;
-        const name = this.getDAppResourceName(application);
+        const name = this.getResourceName(application);
         await this.api.deleteNamespacedCustomObject(
-            "rollups.cartesi.io",
-            "v1alpha1",
+            crd.group,
+            crd.version,
             namespace,
-            "applications",
+            crd.plural,
             name,
         );
     }

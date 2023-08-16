@@ -1,4 +1,4 @@
-import { Application } from "../index.js";
+import { Application, Logger } from "../index.js";
 import { K8sDriver } from "./k8s.js";
 import { FlyDriver } from "./fly.js";
 
@@ -14,11 +14,14 @@ export interface NodeDriver {
     stop(dapp: Application): Promise<void>;
 }
 
-export const createDriver = (config: NodeDriverConfig): NodeDriver => {
+export const createDriver = (
+    config: NodeDriverConfig,
+    logger?: Logger,
+): NodeDriver => {
     switch (config.type) {
         case "k8s":
-            return new K8sDriver(config);
+            return new K8sDriver(config, logger);
         case "fly":
-            return new FlyDriver(config);
+            return new FlyDriver(config, logger);
     }
 };

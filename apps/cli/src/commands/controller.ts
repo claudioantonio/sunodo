@@ -148,10 +148,18 @@ export default class Controller extends Command {
 
         // driver for node management
         // XXX: only type for now is k8s
-        const driver = createDriver({
-            type: "k8s",
-            namespace: flags["k8s-namespace"],
-        });
+        const driver = createDriver(
+            {
+                type: "k8s",
+                namespace: flags["k8s-namespace"],
+            },
+            {
+                info: this.log,
+                error: this.error,
+                warn: this.warn,
+                debug: this.debug,
+            },
+        );
 
         // connect to local database, lives inside dataDir
         // ~/.local/share/sunodo/31337/data.json
