@@ -5,7 +5,7 @@ import { Command, Flags } from "@oclif/core";
 import { createPublicClient, getContract, http, Log } from "viem";
 
 import { createDriver } from "../node/driver/index.js";
-import { DApp, DAppStore } from "../node/database/index.js";
+import { Application, Database } from "../node/index.js";
 import { iFinancialProtocolABI, iMachineProtocolABI } from "../contracts.js";
 import * as CustomFlags from "../flags.js";
 
@@ -32,7 +32,7 @@ export default class Controller extends Command {
     static summary = "Run a sunodo node controller.";
 
     static description =
-        "A node controller manages the execution of nodes for DApps deployed to a blockchain.";
+        "A node controller manages the execution of nodes for applications deployed to a blockchain.";
 
     static examples = ["<%= config.bin %> <%= command.id %>"];
 
@@ -73,13 +73,13 @@ export default class Controller extends Command {
         "k8s-namespace": Flags.string({
             summary: "Kubernetes namespace to deploy applications to",
             description:
-                "DApps resources will be created in this given namespace",
+                "Application resources will be created in this given namespace",
             default: "default",
             env: "SUNODO_NAMESPACE",
         }),
     };
 
-    private async addMachine(db: DAppStore, log: MachineLocationLog) {
+    private async addMachine(db: Database, log: MachineLocationLog) {
         const { args, blockNumber } = log;
         if (!blockNumber) {
             this.warn("Ignoring MachineLocation log from pending block");
@@ -99,10 +99,10 @@ export default class Controller extends Command {
     }
 
     private async addApplication(
-        db: DAppStore,
+        db: Database,
         log: FinancialRunwayLog,
         now: bigint,
-    ): Promise<DApp | undefined> {
+    ): Promise<Application | undefined> {
         const { args, blockNumber, blockHash, transactionHash } = log;
         if (!blockNumber) {
             this.warn("Ignoring FinancialRunway log from pending block");
@@ -122,7 +122,7 @@ export default class Controller extends Command {
         const shutdownAt = until * 1000n;
 
         // update or create dapp in database
-        return db.addDApp(now, {
+        return db.addApplication(now, {
             address,
             blockHash,
             blockNumber,
@@ -157,10 +157,20 @@ export default class Controller extends Command {
         // ~/.local/share/sunodo/31337/data.json
         const dbPath = path.resolve(path.join(dataDir, "data.json"));
 
+        this.log(`loading applications database from ${dbPath}`);
         const db = fs.existsSync(dbPath)
-            ? DAppStore.load(dbPath, BigInt(Date.now()))
-            : new DAppStore(0n, {}, []);
-        // TODO: store db on exit
+            ? Database.load(dbPath, BigInt(Date.now()))
+            : new Database(0n, {}, []);
+
+        // store db on exit
+        const exit = (_reason: string) => {
+            this.log(`storing applications database at ${dbPath}`);
+            db.store(dbPath);
+            process.exit(0);
+        };
+        process
+            .on("SIGTERM", () => exit("SIGTERM"))
+            .on("SIGINT", () => exit("SIGINT"));
 
         // see from which block we need to start to search for events
         const fromBlock = db.block;

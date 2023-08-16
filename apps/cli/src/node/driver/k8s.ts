@@ -1,7 +1,7 @@
 import k8s from "@kubernetes/client-node";
 
 import { K8sDriverConfig, NodeDriver } from "./index.js";
-import { DApp } from "../database/index.js";
+import { Application } from "../index.js";
 
 export class K8sDriver implements NodeDriver {
     private config: K8sDriverConfig;
@@ -15,14 +15,15 @@ export class K8sDriver implements NodeDriver {
         this.api = kc.makeApiClient(k8s.CustomObjectsApi);
     }
 
-    private getDAppResourceName(dapp: DApp): string {
+    private getDAppResourceName(dapp: Application): string {
         return `dapp-${dapp.address.substring(2, 10).toLocaleLowerCase()}`;
     }
 
-    async start(dapp: DApp, location: string): Promise<void> {
-        const { address, blockHash, blockNumber, transactionHash } = dapp;
+    async start(application: Application, location: string): Promise<void> {
+        const { address, blockHash, blockNumber, transactionHash } =
+            application;
         const namespace = this.config.namespace;
-        const name = this.getDAppResourceName(dapp);
+        const name = this.getDAppResourceName(application);
 
         try {
             await this.api.createNamespacedCustomObject(
@@ -51,9 +52,9 @@ export class K8sDriver implements NodeDriver {
         }
     }
 
-    async stop(dapp: DApp): Promise<void> {
+    async stop(application: Application): Promise<void> {
         const namespace = this.config.namespace;
-        const name = this.getDAppResourceName(dapp);
+        const name = this.getDAppResourceName(application);
         await this.api.deleteNamespacedCustomObject(
             "rollups.cartesi.io",
             "v1alpha1",

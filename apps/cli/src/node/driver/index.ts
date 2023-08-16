@@ -1,4 +1,4 @@
-import { DApp } from "../database/index.js";
+import { Application } from "../index.js";
 import { K8sDriver } from "./k8s.js";
 import { FlyDriver } from "./fly.js";
 
@@ -10,8 +10,8 @@ export type K8sDriverConfig = {
 export type NodeDriverConfig = FlyDriverConfig | K8sDriverConfig;
 
 export interface NodeDriver {
-    start(dapp: DApp, location: string): Promise<void>;
-    stop(dapp: DApp): Promise<void>;
+    start(dapp: Application, location: string): Promise<void>;
+    stop(dapp: Application): Promise<void>;
 }
 
 export const createDriver = (config: NodeDriverConfig): NodeDriver => {

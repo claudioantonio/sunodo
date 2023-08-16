@@ -1,5 +1,5 @@
 import { FlyDriverConfig, NodeDriver } from "./index.js";
-import { DApp } from "../database/index.js";
+import { Application } from "../index.js";
 
 export class FlyDriver implements NodeDriver {
     private config: FlyDriverConfig;
@@ -8,11 +8,11 @@ export class FlyDriver implements NodeDriver {
         this.config = config;
     }
 
-    async start(dapp: DApp, location: string): Promise<void> {
+    async start(dapp: Application, location: string): Promise<void> {
         throw new Error(`unsupported driver type: fly`);
     }
 
-    async stop(dapp: DApp): Promise<void> {
+    async stop(dapp: Application): Promise<void> {
         throw new Error(`unsupported driver type: fly`);
     }
 }

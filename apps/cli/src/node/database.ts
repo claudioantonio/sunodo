@@ -1,20 +1,14 @@
 import fs from "fs";
-import { Address, Hash } from "viem";
+import { Address } from "viem";
 
-export type DApp = {
-    address: Address;
-    blockHash: Hash;
-    blockNumber: bigint;
-    transactionHash: Hash;
-    shutdownAt: bigint;
-};
+import { Application } from "./index.js";
 
-export class DAppStore {
+export class Database {
     // map of machine locations
     public readonly machines: Record<Address, string> = {};
 
     // sorted by shutdownAt
-    public readonly dapps: DApp[] = [];
+    public readonly applications: Application[] = [];
 
     // largest block of information update
     public block: bigint = 0n;
@@ -26,11 +20,11 @@ export class DAppStore {
     constructor(
         block: bigint = 0n,
         machines: Record<Address, string> = {},
-        dapps: DApp[] = [],
+        applications: Application[] = [],
     ) {
         this.block = block;
         this.machines = machines;
-        this.dapps = dapps;
+        this.applications = applications;
     }
 
     public store(filename: string) {
@@ -40,7 +34,7 @@ export class DAppStore {
                 {
                     block: this.block.toString(),
                     machines: this.machines,
-                    dapps: this.dapps,
+                    dapps: this.applications,
                 },
                 (_key, value) =>
                     typeof value === "bigint" ? value.toString() : value,
@@ -49,19 +43,19 @@ export class DAppStore {
         );
     }
 
-    public static load(filename: string, now: bigint): DAppStore {
+    public static load(filename: string, now: bigint): Database {
         const data = JSON.parse(fs.readFileSync(filename, "utf-8"));
-        const store = new DAppStore(
+        const store = new Database(
             BigInt(data.block),
             data.machines,
             data.dapps,
         );
-        const index = store.dapps.findIndex((d) => d.shutdownAt > now);
+        const index = store.applications.findIndex((d) => d.shutdownAt > now);
         store.now =
-            store.dapps.length == 0
+            store.applications.length == 0
                 ? -1
                 : index === -1
-                ? store.dapps.length
+                ? store.applications.length
                 : index;
         return store;
     }
@@ -71,39 +65,42 @@ export class DAppStore {
         this.machines[address] = machine;
     }
 
-    public addDApp(now: bigint, dapp: DApp): DApp | undefined {
-        this.block = dapp.blockNumber;
+    public addApplication(
+        now: bigint,
+        application: Application,
+    ): Application | undefined {
+        this.block = application.blockNumber;
 
-        if (this.dapps.length == 0) {
-            this.dapps.push(dapp);
+        if (this.applications.length == 0) {
+            this.applications.push(application);
 
             // set now index correctly
-            this.now = dapp.shutdownAt > now ? 0 : 1;
+            this.now = application.shutdownAt > now ? 0 : 1;
 
             // dapp should start, so return it
-            return dapp.shutdownAt > now ? dapp : undefined;
+            return application.shutdownAt > now ? application : undefined;
         }
 
         // remove dapp if already exists
-        const existing = this.dapps.findIndex(
-            (d) => d.address === dapp.address,
+        const existing = this.applications.findIndex(
+            (d) => d.address === application.address,
         );
         if (existing !== -1) {
-            this.dapps.splice(existing, 1);
+            this.applications.splice(existing, 1);
         }
 
         // add in the correct order (sorted by shutdownAt)
-        const index = this.dapps.findIndex(
-            (d) => d.shutdownAt > dapp.shutdownAt,
+        const index = this.applications.findIndex(
+            (d) => d.shutdownAt > application.shutdownAt,
         );
-        const insertIndex = index === -1 ? this.dapps.length : index;
-        this.dapps.splice(insertIndex, 0, dapp);
+        const insertIndex = index === -1 ? this.applications.length : index;
+        this.applications.splice(insertIndex, 0, application);
 
         if (this.now >= insertIndex) {
             this.now++;
         }
 
-        return dapp.shutdownAt > now ? dapp : undefined;
+        return application.shutdownAt > now ? application : undefined;
     }
 
     /**
@@ -111,18 +108,18 @@ export class DAppStore {
      * @param now timestamp (milliseconds epoch as bigint)
      * @returns dapps that should be shutdown
      */
-    public tick(now: bigint): DApp[] {
-        if (this.dapps.length == 0) {
+    public tick(now: bigint): Application[] {
+        if (this.applications.length == 0) {
             // no dapps
             this.now = -1;
             return [];
         }
 
-        const stop: DApp[] = [];
-        while (this.dapps[this.now].shutdownAt <= now) {
-            stop.push(this.dapps[this.now]);
+        const stop: Application[] = [];
+        while (this.applications[this.now].shutdownAt <= now) {
+            stop.push(this.applications[this.now]);
             this.now++;
-            if (this.now == this.dapps.length) {
+            if (this.now == this.applications.length) {
                 break;
             }
         }
