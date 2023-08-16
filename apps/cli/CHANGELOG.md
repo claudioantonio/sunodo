@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+### Minor Changes
+
+-   6f76cf8: hide host's machine-snapshot from validator container
+-   65b8806: deploy command
+-   1b999a5: simplifying generation of address by @wagmi/cli powered by deterministic deployment
+
+### Patch Changes
+
+-   918601a: fix check of send generic hex value
+
 ## 0.6.0
 
 ### Minor Changes

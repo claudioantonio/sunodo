@@ -1,5 +1,11 @@
 # rollups-node
 
+## 0.3.0
+
+### Minor Changes
+
+-   fd0cc52: provision machine-snapshot from host to container
+
 ## 0.2.0
 
 ### Minor Changes

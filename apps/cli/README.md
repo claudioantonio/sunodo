@@ -25,7 +25,7 @@ $ npm install -g @sunodo/cli
 $ sunodo COMMAND
 running command...
 $ sunodo (--version)
-@sunodo/cli/0.6.0 linux-x64 node-v20.3.0
+@sunodo/cli/0.7.0 linux-x64 node-v20.5.1
 $ sunodo --help [COMMAND]
 USAGE
   $ sunodo COMMAND
@@ -40,6 +40,8 @@ USAGE
 * [`sunodo build`](#sunodo-build)
 * [`sunodo clean`](#sunodo-clean)
 * [`sunodo create NAME`](#sunodo-create-name)
+* [`sunodo deploy`](#sunodo-deploy)
+* [`sunodo deploy list`](#sunodo-deploy-list)
 * [`sunodo doctor`](#sunodo-doctor)
 * [`sunodo help [COMMANDS]`](#sunodo-help-commands)
 * [`sunodo run`](#sunodo-run)
@@ -72,7 +74,7 @@ EXAMPLES
   $ sunodo address-book
 ```
 
-_See code: [dist/commands/address-book.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/address-book.ts)_
+_See code: [dist/commands/address-book.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/address-book.ts)_
 
 ## `sunodo build`
 
@@ -117,7 +119,7 @@ FLAG DESCRIPTIONS
     machine is not the last stage, use this parameter to specify the target stage.
 ```
 
-_See code: [dist/commands/build.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/build.ts)_
+_See code: [dist/commands/build.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/build.ts)_
 
 ## `sunodo clean`
 
@@ -136,7 +138,7 @@ EXAMPLES
   $ sunodo clean
 ```
 
-_See code: [dist/commands/clean.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/clean.ts)_
+_See code: [dist/commands/clean.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/clean.ts)_
 
 ## `sunodo create NAME`
 
@@ -161,7 +163,76 @@ EXAMPLES
   $ sunodo create
 ```
 
-_See code: [dist/commands/create.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/create.ts)_
+_See code: [dist/commands/create.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/create.ts)_
+
+## `sunodo deploy`
+
+Deploy application to a live network.
+
+```
+USAGE
+  $ sunodo deploy [--network arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [--mnemonic-passphrase <value>] [--mnemonic-index <value>] [--ipfs-url <value>] [--ipfs-username <value>]
+    [--ipfs-password <value>] [--owner <value>] [--factory <value>]
+
+FLAGS
+  --factory=<value>   address of dapp factory
+  --network=<option>  network to deploy to
+                      <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
+  --owner=<value>     address of owner of the application
+
+IPFS FLAGS
+  --ipfs-password=<value>  password for IPFS node
+  --ipfs-url=<value>       address of IPFS node to upload the cartesi machine snapshot
+  --ipfs-username=<value>
+
+WALLET FLAGS
+  --mnemonic-index=<value>       Use the private key from the given mnemonic index.
+  --mnemonic-passphrase=<value>  Use a BIP39 passphrase for the mnemonic.
+
+DESCRIPTION
+  Deploy application to a live network.
+
+  Package, upload and deploy the application to a supported network.
+
+EXAMPLES
+  $ sunodo deploy
+
+FLAG DESCRIPTIONS
+  --factory=<value>  address of dapp factory
+
+    A factory is already associated with a consensus and a payment method
+
+  --owner=<value>  address of owner of the application
+
+    the application owner has the power to change the consensus at any time
+```
+
+_See code: [dist/commands/deploy/index.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/deploy/index.ts)_
+
+## `sunodo deploy list`
+
+List deployments of the application.
+
+```
+USAGE
+  $ sunodo deploy list [--json] [--network arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+
+FLAGS
+  --network=<option>  network to list the deployments
+                      <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  List deployments of the application.
+
+  List all deployments done of the application to live networks.
+
+EXAMPLES
+  $ sunodo deploy list
+```
 
 ## `sunodo doctor`
 
@@ -178,7 +249,7 @@ EXAMPLES
   $ sunodo doctor
 ```
 
-_See code: [dist/commands/doctor.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/doctor.ts)_
+_See code: [dist/commands/doctor.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/doctor.ts)_
 
 ## `sunodo help [COMMANDS]`
 
@@ -198,7 +269,7 @@ DESCRIPTION
   Display help for sunodo.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.9/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.15/src/commands/help.ts)_
 
 ## `sunodo run`
 
@@ -222,7 +293,7 @@ EXAMPLES
   $ sunodo run
 ```
 
-_See code: [dist/commands/run.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/run.ts)_
+_See code: [dist/commands/run.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/run.ts)_
 
 ## `sunodo send`
 
@@ -241,7 +312,7 @@ EXAMPLES
   $ sunodo send
 ```
 
-_See code: [dist/commands/send/index.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/send/index.ts)_
+_See code: [dist/commands/send/index.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/send/index.ts)_
 
 ## `sunodo send dapp-address`
 
@@ -249,14 +320,15 @@ Send DApp address input to the application.
 
 ```
 USAGE
-  $ sunodo send dapp-address [--dapp <value>] [-c <value>] [-r <value>] [--mnemonic-passphrase <value>]
-    [--mnemonic-index <value>]
+  $ sunodo send dapp-address [--dapp <value>] [-c arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [-r <value>] [--mnemonic-passphrase <value>] [--mnemonic-index <value>]
 
 FLAGS
   --dapp=<value>  dapp address.
 
 ETHEREUM FLAGS
-  -c, --chain=<value>    The chain name or EIP-155 chain ID.
+  -c, --chain=<option>   The chain name or EIP-155 chain ID.
+                         <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
   -r, --rpc-url=<value>  The RPC endpoint.
 
 WALLET FLAGS
@@ -283,8 +355,8 @@ Send ERC-20 deposit to the application.
 
 ```
 USAGE
-  $ sunodo send erc20 [--dapp <value>] [-c <value>] [-r <value>] [--mnemonic-passphrase <value>]
-    [--mnemonic-index <value>] [--token <value>] [--amount <value>]
+  $ sunodo send erc20 [--dapp <value>] [-c arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [-r <value>] [--mnemonic-passphrase <value>] [--mnemonic-index <value>] [--token <value>] [--amount <value>]
 
 FLAGS
   --amount=<value>  [default: 1] amount
@@ -292,7 +364,8 @@ FLAGS
   --token=<value>   token address
 
 ETHEREUM FLAGS
-  -c, --chain=<value>    The chain name or EIP-155 chain ID.
+  -c, --chain=<option>   The chain name or EIP-155 chain ID.
+                         <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
   -r, --rpc-url=<value>  The RPC endpoint.
 
 WALLET FLAGS
@@ -319,8 +392,8 @@ Send ERC-721 deposit to the application.
 
 ```
 USAGE
-  $ sunodo send erc721 [--dapp <value>] [-c <value>] [-r <value>] [--mnemonic-passphrase <value>]
-    [--mnemonic-index <value>] [--token <value>] [--tokenId <value>]
+  $ sunodo send erc721 [--dapp <value>] [-c arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [-r <value>] [--mnemonic-passphrase <value>] [--mnemonic-index <value>] [--token <value>] [--tokenId <value>]
 
 FLAGS
   --dapp=<value>     dapp address.
@@ -328,7 +401,8 @@ FLAGS
   --tokenId=<value>  token ID
 
 ETHEREUM FLAGS
-  -c, --chain=<value>    The chain name or EIP-155 chain ID.
+  -c, --chain=<option>   The chain name or EIP-155 chain ID.
+                         <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
   -r, --rpc-url=<value>  The RPC endpoint.
 
 WALLET FLAGS
@@ -355,8 +429,8 @@ Send ether deposit to the application.
 
 ```
 USAGE
-  $ sunodo send ether [--dapp <value>] [-c <value>] [-r <value>] [--mnemonic-passphrase <value>]
-    [--mnemonic-index <value>] [--amount <value>] [--execLayerData <value>]
+  $ sunodo send ether [--dapp <value>] [-c arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [-r <value>] [--mnemonic-passphrase <value>] [--mnemonic-index <value>] [--amount <value>] [--execLayerData <value>]
 
 FLAGS
   --amount=<value>         amount, in ETH units
@@ -364,7 +438,8 @@ FLAGS
   --execLayerData=<value>  [default: 0x] exec layer data
 
 ETHEREUM FLAGS
-  -c, --chain=<value>    The chain name or EIP-155 chain ID.
+  -c, --chain=<option>   The chain name or EIP-155 chain ID.
+                         <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
   -r, --rpc-url=<value>  The RPC endpoint.
 
 WALLET FLAGS
@@ -391,8 +466,9 @@ Send generic input to the application.
 
 ```
 USAGE
-  $ sunodo send generic [--dapp <value>] [-c <value>] [-r <value>] [--mnemonic-passphrase <value>]
-    [--mnemonic-index <value>] [--input <value>] [--input-encoding hex|string|abi] [--input-abi-params <value>]
+  $ sunodo send generic [--dapp <value>] [-c arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia]
+    [-r <value>] [--mnemonic-passphrase <value>] [--mnemonic-index <value>] [--input <value>] [--input-encoding
+    hex|string|abi] [--input-abi-params <value>]
 
 FLAGS
   --dapp=<value>              dapp address.
@@ -404,7 +480,8 @@ FLAGS
                               <options: hex|string|abi>
 
 ETHEREUM FLAGS
-  -c, --chain=<value>    The chain name or EIP-155 chain ID.
+  -c, --chain=<option>   The chain name or EIP-155 chain ID.
+                         <options: arbitrum|arbitrum-goerli|homestead|optimism|optimism-goerli|sepolia>
   -r, --rpc-url=<value>  The RPC endpoint.
 
 WALLET FLAGS
@@ -464,7 +541,7 @@ EXAMPLES
   $ sunodo shell
 ```
 
-_See code: [dist/commands/shell.ts](https://github.com/sunodo/sunodo/blob/v0.6.0/dist/commands/shell.ts)_
+_See code: [dist/commands/shell.ts](https://github.com/sunodo/sunodo/blob/v0.7.0/dist/commands/shell.ts)_
 
 ## `sunodo update [CHANNEL]`
 
@@ -501,5 +578,5 @@ EXAMPLES
     $ sunodo update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v3.1.18/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v3.1.28/src/commands/update.ts)_
 <!-- commandsstop -->
