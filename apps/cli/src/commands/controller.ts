@@ -176,7 +176,7 @@ export default class Controller extends Command {
             .on("SIGINT", () => exit("SIGINT"));
 
         // see from which block we need to start to search for events
-        const fromBlock = db.block;
+        const fromBlock = db.block + 1n;
 
         // query FinancialRunway events and update table
         const financialProtocol = flags.factory || flags["financial-protocol"];
