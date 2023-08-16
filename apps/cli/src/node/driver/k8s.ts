@@ -26,6 +26,7 @@ export class K8sDriver implements NodeDriver {
     }
 
     private getResourceName(application: Application): string {
+        // this is the naming convention used by the k8s operator
         return `app-${application.address
             .substring(2, 10)
             .toLocaleLowerCase()}`;
@@ -56,7 +57,7 @@ export class K8sDriver implements NodeDriver {
                     },
                 },
             );
-            this.logger.info(`created resource ${name}`);
+            this.logger.info(`created ${crd.kind} ${name}`);
         } catch (err) {
             // API returns a 409 Conflict if CR already exists.
             if ((err as any).response?.statusCode !== 409) {
@@ -67,7 +68,7 @@ export class K8sDriver implements NodeDriver {
                 }
                 throw err;
             }
-            this.logger.info(`skipping existing resource ${name}`);
+            this.logger.info(`skipping existing ${crd.kind} ${name}`);
         }
     }
 
@@ -81,5 +82,6 @@ export class K8sDriver implements NodeDriver {
             crd.plural,
             name,
         );
+        this.logger.info(`deleted ${crd.kind} ${name}`);
     }
 }

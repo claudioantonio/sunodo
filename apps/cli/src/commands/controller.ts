@@ -5,7 +5,7 @@ import { Command, Flags } from "@oclif/core";
 import { createPublicClient, getContract, http, Log } from "viem";
 
 import { createDriver } from "../node/driver/index.js";
-import { Application, Database } from "../node/index.js";
+import { Application, CommandLogger, Database } from "../node/index.js";
 import { iFinancialProtocolABI, iMachineProtocolABI } from "../contracts.js";
 import * as CustomFlags from "../flags.js";
 
@@ -153,12 +153,7 @@ export default class Controller extends Command {
                 type: "k8s",
                 namespace: flags["k8s-namespace"],
             },
-            {
-                info: this.log,
-                error: this.error,
-                warn: this.warn,
-                debug: this.debug,
-            },
+            new CommandLogger(this),
         );
 
         // connect to local database, lives inside dataDir

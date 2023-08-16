@@ -1,3 +1,4 @@
+import { Command } from "@oclif/core";
 import { Address, Hash } from "viem";
 
 export { Database } from "./database.js";
@@ -28,6 +29,30 @@ export class NullLogger implements Logger {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public error(message: string): void {
         // no-op
+    }
+}
+
+export class CommandLogger implements Logger {
+    private command: Command;
+
+    constructor(command: Command) {
+        this.command = command;
+    }
+
+    debug(message: string): void {
+        // no op
+    }
+
+    info(message: string): void {
+        this.command.log(message);
+    }
+
+    warn(message: string): void {
+        this.command.warn(message);
+    }
+
+    error(message: string): void {
+        this.command.error(message);
     }
 }
 
