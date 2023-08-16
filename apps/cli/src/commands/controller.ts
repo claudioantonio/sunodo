@@ -153,7 +153,7 @@ export default class Controller extends Command {
                 type: "k8s",
                 namespace: flags["k8s-namespace"],
             },
-            new CommandLogger(this),
+            new CommandLogger(this, flags.verbose),
         );
 
         // connect to local database, lives inside dataDir

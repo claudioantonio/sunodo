@@ -34,13 +34,15 @@ export class NullLogger implements Logger {
 
 export class CommandLogger implements Logger {
     private command: Command;
+    private verbose: boolean;
 
-    constructor(command: Command) {
+    constructor(command: Command, verbose: boolean) {
         this.command = command;
+        this.verbose = verbose;
     }
 
     debug(message: string): void {
-        // no op
+        this.verbose && this.command.log(message);
     }
 
     info(message: string): void {
