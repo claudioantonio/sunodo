@@ -1,0 +1,82 @@
+kubectl create secret generic mnemonic --from-literal=MNEMONIC="test test test test test test test test test test test junk"
+
+helm install redis bitnami/redis --wait --set auth.enabled=false --set architecture=standalone --set image.tag=6.2-debian-11
+NAME: redis
+LAST DEPLOYED: Mon Aug 14 23:17:45 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CHART NAME: redis
+CHART VERSION: 17.15.2
+APP VERSION: 7.0.12
+
+** Please be patient while the chart is being deployed **
+
+Redis&reg; can be accessed via port 6379 on the following DNS name from within your cluster:
+
+    redis-master.default.svc.cluster.local
+
+
+
+To connect to your Redis&reg; server:
+
+1. Run a Redis&reg; pod that you can use as a client:
+
+   kubectl run --namespace default redis-client --restart='Never'  --image docker.io/bitnami/redis:6.2-debian-11 --command -- sleep infinity
+
+   Use the following command to attach to the pod:
+
+   kubectl exec --tty -i redis-client \
+   --namespace default -- bash
+
+2. Connect using the Redis&reg; CLI:
+   redis-cli -h redis-master
+
+To connect to your database from outside the cluster execute the following commands:
+
+    kubectl port-forward --namespace default svc/redis-master 6379:6379 &
+    redis-cli -h 127.0.0.1 -p 6379
+WARNING: Rolling tag detected (bitnami/redis:6.2-debian-11), please note that it is strongly recommended to avoid using rolling tags in a production environment.
++info https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/
+
+---------------------------------------------------------------------------------------------------------------------------------
+helm install postgres oci://registry-1.docker.io/bitnamicharts/postgresql
+
+Pulled: registry-1.docker.io/bitnamicharts/postgresql:12.8.2
+Digest: sha256:703e0ab9a1f1be45da92c891bec38697c2f3143af014757b3542da0f2a8cfdce
+NAME: postgres
+LAST DEPLOYED: Mon Aug 14 10:52:05 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+CHART NAME: postgresql
+CHART VERSION: 12.8.2
+APP VERSION: 15.4.0
+
+** Please be patient while the chart is being deployed **
+
+PostgreSQL can be accessed via port 5432 on the following DNS names from within your cluster:
+
+    postgres-postgresql.default.svc.cluster.local - Read/Write connection
+
+To get the password for "postgres" run:
+
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace default postgres-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
+
+To connect to your database run the following command:
+
+    kubectl run postgres-postgresql-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:15.4.0-debian-11-r0 \
+      --command -- psql --host postgres-postgresql -U postgres -d postgres -p 5432
+
+    > NOTE: If you access the container using bash, make sure that you execute "/opt/bitnami/scripts/postgresql/entrypoint.sh /bin/bash" in order to avo"
+
+To connect to your database from outside the cluster execute the following commands:
+
+    kubectl port-forward --namespace default svc/postgres-postgresql 5432:5432 &
+    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432
+
+WARNING: The configured password will be ignored on new installation in case when previous PostgreSQL release was deleted through the helm command. In t.

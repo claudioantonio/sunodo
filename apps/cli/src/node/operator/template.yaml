@@ -1,0 +1,459 @@
+---
+# Source: rollups-validator-node/templates/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: my-dapp-rollups-validator-node-dapp
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+data:
+    "dapp.json": |
+        {
+            "address": "0x71ab24ee3ddB97Dc01A161EdF64c8d51102b0cd3",
+            "blockHash": "0x1037adb80bf8b8d12cc0c224d056f4c855dac052951da0470b86b1f7538bad37",
+            "blockNumber": "8",
+            "transactionHash": "0x5f1e769b56c3ba56254a564156af55b1518c6d5f746c3d3c882879924d587126"
+        }
+---
+# Source: rollups-validator-node/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: my-dapp-rollups-validator-node-graphql-server
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    type: ClusterIP
+    ports:
+        - port: 4000
+          targetPort: 4000
+          protocol: TCP
+          name: graphql
+    selector:
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        rollups.cartesi.io/component: endpoints
+---
+# Source: rollups-validator-node/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: my-dapp-rollups-validator-node-inspect-server
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    type: ClusterIP
+    ports:
+        - port: 5005
+          targetPort: 5005
+          protocol: TCP
+          name: inspect-server
+    selector:
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        rollups.cartesi.io/component: endpoints
+---
+# Source: rollups-validator-node/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: my-dapp-rollups-validator-node-server-manager
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    type: ClusterIP
+    ports:
+        - port: 5001
+          targetPort: 5001
+          protocol: TCP
+          name: server-manager
+    selector:
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        rollups.cartesi.io/component: server-manager
+---
+# Source: rollups-validator-node/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: my-dapp-rollups-validator-node
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+            app.kubernetes.io/name: rollups-validator-node
+            app.kubernetes.io/instance: my-dapp
+            rollups.cartesi.io/component: validator
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+                app.kubernetes.io/name: rollups-validator-node
+                app.kubernetes.io/instance: my-dapp
+                rollups.cartesi.io/component: validator
+        spec:
+            serviceAccountName: default
+            securityContext: {}
+            initContainers:
+            containers:
+                - name: rollups-dispatcher
+                  image: docker.io/cartesi/rollups-dispatcher:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  args:
+                      - "--rd-rollups-deployment-file=/opt/cartesi/share/deployments/localhost.json"
+                      - "--rd-dapp-deployment-file=/deployments/localhost/dapp.json"
+                      - "--tx-mnemonic-file=/var/run/secrets/mnemonic/MNEMONIC"
+                      - "--tx-provider-http-endpoint=http://127.0.0.1:8545"
+                      - "--tx-chain-id=31337"
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                  volumeMounts:
+                      - name: mnemonic
+                        mountPath: /var/run/secrets/mnemonic
+                        readOnly: true
+                      - name: dispatcher-lib
+                        mountPath: /opt/cartesi/rollups-dispatcher/lib
+                        readOnly: false
+                      - name: dapp
+                        mountPath: "/deployments/localhost/"
+                        readOnly: true
+
+                - name: state-server
+                  image: docker.io/cartesi/rollups-state-server:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  args:
+                      - "--bh-http-endpoint=http://127.0.0.1:8545"
+                      - "--bh-ws-endpoint=ws://127.0.0.1:8545"
+                  livenessProbe:
+                      grpc:
+                          port: 50051
+                      initialDelaySeconds: 3
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                  ports:
+                      - containerPort: 50051
+                  volumeMounts:
+
+                - name: rollups-indexer
+                  image: docker.io/cartesi/rollups-indexer:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  args:
+                      - "--dapp-contract-address=0x71ab24ee3ddB97Dc01A161EdF64c8d51102b0cd3"
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                  envFrom:
+                  volumeMounts:
+
+            volumes:
+                - name: dispatcher-lib
+                  emptyDir: {}
+                - name: dapp
+                  configMap:
+                      name: "my-dapp-rollups-validator-node-dapp"
+                      items:
+                          - key: "dapp.json"
+                            path: "dapp.json"
+                - name: mnemonic
+                  secret:
+                      secretName: authority-owner
+---
+# Source: rollups-validator-node/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: my-dapp-rollups-validator-node-server-manager
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+            app.kubernetes.io/name: rollups-validator-node
+            app.kubernetes.io/instance: my-dapp
+            rollups.cartesi.io/component: server-manager
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+                app.kubernetes.io/name: rollups-validator-node
+                app.kubernetes.io/instance: my-dapp
+                rollups.cartesi.io/component: server-manager
+        spec:
+            serviceAccountName: default
+            securityContext: {}
+            initContainers:
+                - name: share-machine-snapshot
+                  image: cartesi/server-manager:0.7.0
+                  command:
+                      - cp
+                      - -avr
+                      - /var/opt/cartesi/machine-snapshots/0_0
+                      - /var/opt/cartesi/machine-snapshots/latest
+                      - /tmp/machine-snapshots/
+                  volumeMounts:
+                      - name: shared-machine-snapshots
+                        mountPath: /tmp/machine-snapshots
+                        readOnly: false
+            containers:
+                - name: advance-runner
+                  image: docker.io/cartesi/rollups-advance-runner:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  args:
+                      - "--chain-id=31337"
+                      - "--dapp-contract-address=0x71ab24ee3ddB97Dc01A161EdF64c8d51102b0cd3"
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                  volumeMounts:
+                      - name: shared-machine-snapshots
+                        mountPath: /var/opt/cartesi/machine-snapshots
+                        readOnly: false
+
+                - name: server-manager
+                  image: cartesi/server-manager:0.7.0
+                  imagePullPolicy: Always
+                  resources: {}
+                  livenessProbe:
+                      grpc:
+                          port: 5001
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+                  args:
+                      - "/opt/cartesi/bin/server-manager"
+                      - "--manager-address=0.0.0.0:5001"
+                  ports:
+                      - containerPort: 5001
+                  env:
+                      - name: SERVER_MANAGER_LOG_LEVEL
+                        value: info
+                      - name: REMOTE_CARTESI_MACHINE_LOG_LEVEL
+                        value: info
+                  volumeMounts:
+                      - name: shared-machine-snapshots
+                        mountPath: /var/opt/cartesi/machine-snapshots
+                        readOnly: false
+
+            volumes:
+                - name: shared-machine-snapshots
+                  emptyDir: {}
+---
+# Source: rollups-validator-node/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: my-dapp-rollups-validator-node-endpoints
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+            app.kubernetes.io/name: rollups-validator-node
+            app.kubernetes.io/instance: my-dapp
+            rollups.cartesi.io/component: endpoints
+    template:
+        metadata:
+            labels:
+                dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+                app.kubernetes.io/name: rollups-validator-node
+                app.kubernetes.io/instance: my-dapp
+                rollups.cartesi.io/component: endpoints
+        spec:
+            serviceAccountName: default
+            securityContext: {}
+            initContainers:
+            containers:
+                - name: rollups-inspect-server
+                  image: docker.io/cartesi/rollups-inspect-server:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 5005
+                      initialDelaySeconds: 3
+                  args:
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                  volumeMounts:
+                  ports:
+                      - containerPort: 5005
+
+                - name: graphql-server
+                  image: docker.io/cartesi/rollups-graphql-server:0.9.1
+                  imagePullPolicy: Always
+                  resources: {}
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 4000
+                      initialDelaySeconds: 3
+                  env:
+                      - name: RUST_LOG
+                        value: info
+                      - name: GRAPHQL_HOST
+                        value: "0.0.0.0"
+                      - name: GRAPHQL_PORT
+                        value: "4000"
+                  envFrom:
+                  volumeMounts:
+                  ports:
+                      - containerPort: 4000
+
+            volumes:
+---
+# Source: rollups-validator-node/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: my-dapp-rollups-validator-node-query-server
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+    annotations:
+        alb.ingress.kubernetes.io/group.name: rollups-dapps
+        alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:128095903102:certificate/20650fa8-1ec4-46a7-a4df-9b5de820a509
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/ssl-redirect: "443"
+        alb.ingress.kubernetes.io/subnets: subnet-0ed4e29d3317197ca, subnet-04b8c528cbd7f0501, subnet-07dc57e5b4cabca5d
+        kubernetes.io/ingress.class: alb
+spec:
+    rules:
+        - host: 0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3.local
+          http: &http
+              paths:
+                  - pathType: Prefix
+                    path: /
+                    backend:
+                        service:
+                            name: my-dapp-rollups-validator-node-query-server
+                            port:
+                                number: 4000
+---
+# Source: rollups-validator-node/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: my-dapp-rollups-validator-node-inspect
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+    annotations:
+spec:
+    rules:
+        - host: 0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3.local
+          http: &http
+              paths:
+                  - pathType: Prefix
+                    path: /inspect
+                    backend:
+                        service:
+                            name: my-dapp-rollups-validator-node-inspect-server
+                            port:
+                                number: 5005
+---
+# Source: rollups-validator-node/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: "my-dapp-rollups-validator-node-test-connection"
+    labels:
+        helm.sh/chart: rollups-validator-node-0.5.2
+        cartesi.io/project: rollups
+        cartesi.io/rollups-version: 0.9.1
+        dapp.cartesi.io/contract-address: "0x71ab24ee3ddb97dc01a161edf64c8d51102b0cd3"
+        app.kubernetes.io/name: rollups-validator-node
+        app.kubernetes.io/instance: my-dapp
+        app.kubernetes.io/version: "0.9.1"
+        app.kubernetes.io/managed-by: Helm
+    annotations:
+        "helm.sh/hook": test
+spec:
+    containers:
+        - name: wget
+          image: busybox
+          command: ["wget"]
+          args: ["my-dapp-rollups-validator-node-graphql-server:4000"]
+    restartPolicy: Never
